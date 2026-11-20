@@ -312,23 +312,6 @@ def build_options(
         options["seed"] = int(seed)
     return options
 
-
-def build_generate_payload_old(model, prompt, system_prompt, images, thinking, keep_alive, options, stream=False):
-    payload = {
-        "model": model,
-        "prompt": prompt,
-        "stream": bool(stream),
-        "think": bool(thinking),
-        "options": options,
-    }
-    if system_prompt:
-        payload["system"] = system_prompt
-    if images:
-        payload["images"] = images
-    if keep_alive:
-        payload["keep_alive"] = keep_alive
-    return payload
-
 def build_generate_payload(model, prompt, system_prompt, images, thinking, keep_alive, options, stream=False):
     payload = {
         "model": model,
@@ -338,6 +321,9 @@ def build_generate_payload(model, prompt, system_prompt, images, thinking, keep_
     }
     if thinking:
         payload["think"] = True
+        _log_ollama_message(message="Thinking is ON")
+    else:
+        _log_ollama_message(message="Thinking is OFF")
 
     if system_prompt:
         payload["system"] = system_prompt
@@ -345,6 +331,10 @@ def build_generate_payload(model, prompt, system_prompt, images, thinking, keep_
         payload["images"] = images
     if keep_alive:
         payload["keep_alive"] = keep_alive
+    
+        _log_ollama_message( message=f"Payload = {payload}"
+    )
+    
     return payload
 
 def _emit_progress(progress_callback, event_type, **event):
