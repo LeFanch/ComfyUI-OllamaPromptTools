@@ -313,7 +313,7 @@ def build_options(
     return options
 
 
-def build_generate_payload(model, prompt, system_prompt, images, thinking, keep_alive, options, stream=False):
+def build_generate_payload_old(model, prompt, system_prompt, images, thinking, keep_alive, options, stream=False):
     payload = {
         "model": model,
         "prompt": prompt,
@@ -329,6 +329,23 @@ def build_generate_payload(model, prompt, system_prompt, images, thinking, keep_
         payload["keep_alive"] = keep_alive
     return payload
 
+def build_generate_payload(model, prompt, system_prompt, images, thinking, keep_alive, options, stream=False):
+    payload = {
+        "model": model,
+        "prompt": prompt,
+        "stream": bool(stream),
+        "options": options,
+    }
+    if thinking:
+        payload["think"] = True
+
+    if system_prompt:
+        payload["system"] = system_prompt
+    if images:
+        payload["images"] = images
+    if keep_alive:
+        payload["keep_alive"] = keep_alive
+    return payload
 
 def _emit_progress(progress_callback, event_type, **event):
     if progress_callback is not None:
