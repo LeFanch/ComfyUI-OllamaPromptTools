@@ -25,7 +25,6 @@ from .placeholder_matching import (
     materialize_prompt_placeholders,
 )
 
-
 IMAGE_TO_PROMPT_SYSTEM = """You are an expert visual analyst and prompt extractor. Convert the input image into a dense, precise, hierarchical description that can be reused as a high-quality image generation prompt. Describe only visually supported information, separate observation from interpretation, and prioritize concrete attributes over vague adjectives. At the end, synthesize the details into a generation-ready prompt."""
 
 ENHANCE_PROMPT_POLISH_SYSTEM = """You are an expert prompt editor for image generation. Rewrite the user's prompt with better clarity, structure, specificity, and visual usefulness while keeping it grounded and controlled. Preserve the original subject, intent, style constraints, and requested details. Improve weak wording, remove ambiguity, and add only modest, plausible visual details that support the original idea. Return only the polished prompt."""

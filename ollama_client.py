@@ -1,13 +1,13 @@
 import base64
 import json
 import os
-from pathlib import Path
 import re
 import socket
 import time
 import urllib.error
 import urllib.request
 from io import BytesIO
+from pathlib import Path
 from urllib.parse import urljoin
 
 import numpy as np
@@ -129,7 +129,7 @@ def _request_json(method, url, payload=None, timeout_seconds=30):
         except json.JSONDecodeError:
             message = body
         raise OllamaRequestError(f"Ollama HTTP {exc.code} for {url}: {message}") from exc
-    except (urllib.error.URLError, TimeoutError, socket.timeout) as exc:
+    except (urllib.error.URLError, TimeoutError) as exc:
         raise OllamaRequestError(
             f"Could not reach Ollama at {url}. Check ollama_host and make sure the Ollama service is running."
         ) from exc
@@ -351,7 +351,7 @@ def _emit_progress(progress_callback, event_type, **event):
     if progress_callback is not None:
         try:
             progress_callback({"type": event_type, **event})
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass
 
 
