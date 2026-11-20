@@ -47,11 +47,11 @@ _load_local_env()
 
 DEFAULT_MODEL = (os.environ.get("OLLAMA_MODEL") or "llava:13b").strip() or "llava:13b"
 DEFAULT_HOST = "http://127.0.0.1:11434"
-MAX_GENERATE_ATTEMPTS = 3
-MIN_GENERATED_WORDS = 250
-MIN_GENERATED_CHARACTERS = 1600
-MAX_GENERATED_WORDS = 900
-MAX_GENERATED_CHARACTERS = 6000
+MAX_GENERATE_ATTEMPTS = int(os.environ.get(key="MAX_GENERATE_ATTEMPTS", default="3"))
+MIN_GENERATED_WORDS = int(os.environ.get(key="MIN_GENERATED_WORDS", default="250"))
+MIN_GENERATED_CHARACTERS = int(os.environ.get(key="MIN_GENERATED_CHARACTERS", default="1600"))
+MAX_GENERATED_WORDS = int(os.environ.get(key="MAX_GENERATED_WORDS", default="900"))
+MAX_GENERATED_CHARACTERS = int(os.environ.get(key="MAX_GENERATED_CHARACTERS", default="6000"))
 LOG_PREFIX = "[ComfyUI-OllamaPromptTools]"
 
 _THINK_BLOCK_RE = re.compile(r"<think\b[^>]*>.*?</think\s*>", re.IGNORECASE | re.DOTALL)
@@ -59,6 +59,7 @@ _UNCLOSED_THINK_RE = re.compile(r"<think\b[^>]*>.*$", re.IGNORECASE | re.DOTALL)
 _STRAY_THINK_CLOSE_RE = re.compile(r"</think\s*>", re.IGNORECASE)
 _WORD_RE = re.compile(r"\b\w+\b")
 
+thinking_mode = True
 
 class OllamaRequestError(RuntimeError):
     pass
@@ -93,7 +94,7 @@ def _log_attempt_failure(action, attempt, attempts, payload, reason):
 
 
 def get_default_host():
-    return normalize_host(os.environ.get("OLLAMA_HOST") or DEFAULT_HOST)
+    return normalize_host(os.environ.get(key="OLLAMA_HOST") or DEFAULT_HOST)
 
 
 def normalize_host(host):
@@ -233,8 +234,11 @@ def strip_think_tags(text):
     return text.strip()
 
 
-def generated_text_quality_error(text):
-    cleaned = strip_think_tags(text)
+def generated_text_quality_error(text, thinking:bool=True):
+    if thinking:
+        cleaned = strip_think_tags(text)
+    else:
+        cleaned = text
     word_count = len(_WORD_RE.findall(cleaned))
     character_count = len(cleaned)
     if word_count < MIN_GENERATED_WORDS or character_count < MIN_GENERATED_CHARACTERS:
@@ -306,6 +310,7 @@ def build_options(
             "min_p": float(min_p),
             "repeat_penalty": float(repeat_penalty),
             "presence_penalty": float(presence_penalty),
+            "num_ctx": 16384,
         }
     )
     if int(seed) >= 0:
@@ -398,10 +403,11 @@ def generate_text(host, payload, timeout_seconds=120, max_attempts=MAX_GENERATE_
                 raise OllamaRequestError(f"Ollama response did not include generated text: {response}")
 
             generated_text = response["response"]
-            quality_error = generated_text_quality_error(generated_text)
+            # quality_error = generated_text_quality_error(generated_text)
+            quality_error = None # generated_text_quality_error(generated_text)
             if quality_error is None:
                 _log_ollama_message(
-                    f"Ollama generation completed for model '{_payload_model(payload)}'. "
+                    f"Text quality bypassed. Ollama generation completed for model '{_payload_model(payload)}'. "
                     f"Processing time: {_format_elapsed_time(start_time)}."
                 )
                 return generated_text
@@ -424,6 +430,7 @@ def generate_text_streaming(
     timeout_seconds=120,
     max_attempts=MAX_GENERATE_ATTEMPTS,
     progress_callback=None,
+    thinking:bool=True
 ):
     start_time = time.perf_counter()
     attempts = max(1, int(max_attempts))
@@ -489,7 +496,7 @@ def generate_text_streaming(
                 raise OllamaRequestError("Ollama streaming response ended before a done event.")
 
             generated_text = "".join(generated_parts)
-            quality_error = generated_text_quality_error(generated_text)
+            quality_error = generated_text_quality_error(text=generated_text, thinking=thinking)
             if quality_error is None:
                 _emit_progress(
                     progress_callback,

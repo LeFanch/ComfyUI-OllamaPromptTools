@@ -491,32 +491,33 @@ class OllamaGenerateText:
 
             progress.phase("Ollama: building generation payload")
             options = build_options(
-                settings["sampling_mode"],
-                settings["num_predict"],
-                settings["temperature"],
-                settings["top_k"],
-                settings["top_p"],
-                settings["min_p"],
-                settings["repeat_penalty"],
-                settings["presence_penalty"],
-                settings["seed"],
+                sampling_mode=settings["sampling_mode"],
+                num_predict=settings["num_predict"],
+                temperature=settings["temperature"],
+                top_k=settings["top_k"],
+                top_p=settings["top_p"],
+                min_p=settings["min_p"],
+                repeat_penalty=settings["repeat_penalty"],
+                presence_penalty=settings["presence_penalty"],
+                seed=settings["seed"],
             )
             payload = build_generate_payload(
-                selected_model,
-                final_prompt,
-                resolved_system_prompt,
-                images,
-                settings["thinking"],
-                settings["keep_alive"].strip(),
-                options,
+                model=selected_model,
+                prompt=final_prompt,
+                system_prompt=resolved_system_prompt,
+                images=images,
+                thinking=settings["thinking"],
+                keep_alive=settings["keep_alive"].strip(),
+                options=options,
                 stream=True,
             )
             progress.phase(f"Ollama: connecting to {host}")
             value = generate_text_streaming(
-                host,
-                payload,
+                host=host,
+                payload=payload,
                 timeout_seconds=settings["timeout_seconds"],
                 progress_callback=progress,
+                thinking=settings["thinking"],
             )
         except OllamaRequestError as exc:
             progress.finish(f"Ollama: generation failed, passing through prompt\n{_compact_progress_reason(str(exc))}")
