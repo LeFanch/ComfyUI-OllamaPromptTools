@@ -223,7 +223,6 @@ def resolve_model(model, model_override=None):
     model = (model or "").strip()
     return model or DEFAULT_MODEL
 
-
 def _strip_think_tags(text):
     text = _THINK_BLOCK_RE.sub(" ", text)
     text = _UNCLOSED_THINK_RE.sub("", text)
@@ -330,9 +329,9 @@ def build_generate_payload(model, prompt, system_prompt, images, thinking, keep_
     }
     if thinking:
         payload["think"] = True
-        _log_ollama_message(message="Thinking is ON")
-    else:
-        _log_ollama_message(message="Thinking is OFF")
+    #     _log_ollama_message(message="Thinking is ON")
+    # else:
+    #     _log_ollama_message(message="Thinking is OFF")
 
     if system_prompt:
         payload["system"] = system_prompt
