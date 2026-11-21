@@ -224,21 +224,25 @@ def resolve_model(model, model_override=None):
     return model or DEFAULT_MODEL
 
 
-def strip_think_tags(text):
+def _strip_think_tags(text):
     text = _THINK_BLOCK_RE.sub(" ", text)
     text = _UNCLOSED_THINK_RE.sub("", text)
     text = _STRAY_THINK_CLOSE_RE.sub("", text)
+    # text = re.sub(r" {2,}", " ", text)
+    # text = re.sub(r"[ \t]+\n", "\n", text)
+    # text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+def strip_text(text:str, strip_think_tags:bool):
+    if strip_think_tags:
+        text = _strip_think_tags(text)
     text = re.sub(r" {2,}", " ", text)
     text = re.sub(r"[ \t]+\n", "\n", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()
 
-
 def generated_text_quality_error(text, thinking:bool=True):
-    if thinking:
-        cleaned = strip_think_tags(text)
-    else:
-        cleaned = text
+    cleaned = strip_text(text=text, strip_think_tags=thinking)
     word_count = len(_WORD_RE.findall(cleaned))
     character_count = len(cleaned)
     if word_count < MIN_GENERATED_WORDS or character_count < MIN_GENERATED_CHARACTERS:
