@@ -103,7 +103,7 @@ class OllamaClientTests(unittest.TestCase):
 
     def test_strip_think_tags_removes_closed_unclosed_and_stray_tags(self):
         text = "A <think>hidden reasoning</think>visible</think>\nB <think>unfinished"
-        self.assertEqual(ollama_client.strip_think_tags(text), "A visible\nB")
+        self.assertEqual(ollama_client._strip_think_tags(text), "A visible\nB")
 
     def test_image_tensor_to_base64_png_encodes_first_batch_item(self):
         image = torch.zeros((2, 2, 2, 3), dtype=torch.float32)
