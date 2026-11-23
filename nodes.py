@@ -16,7 +16,7 @@ from .ollama_client import (
     normalize_host,
     require_vision_support,
     resolve_model,
-    strip_think_tags,
+    strip_text,
 )
 from .placeholder_matching import (
     DEFAULT_PLACEHOLDER_EMBEDDING_MODEL,
@@ -523,9 +523,13 @@ class OllamaGenerateText:
             progress.finish(f"Ollama: generation failed, passing through prompt\n{_compact_progress_reason(str(exc))}")
             return _passthrough_result(prompt, delimiter)
 
-        thinking_stream = _extract_thinking_stream(value)
-        generated_text = strip_think_tags(value)
-        if _is_unusable_model_result(generated_text):
+
+        if thinking:
+            thinking_stream = _extract_thinking_stream(value)
+        else:
+            thinking_stream = ""
+        generated_text = strip_text(text=value, strip_think_tags=thinking )
+        if _is_unusable_model_result(value=generated_text):
             progress.finish("Ollama: unusable output, passing through prompt")
             return _passthrough_result(prompt, delimiter, thinking_stream)
         progress.finish("Ollama: complete")
